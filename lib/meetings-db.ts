@@ -75,20 +75,54 @@ export async function getMeetingById(
     return (rows[0] as unknown as SacramentMeeting) ?? null;
 }
 
-// Mutation stubs — will be wired to the database in Week 04
 export async function addMeeting(
     data: Omit<SacramentMeeting, 'id'>
 ): Promise<SacramentMeeting> {
-    throw new Error('addMeeting: database implementation coming in Week 04');
+    const rows = await sql`
+    INSERT INTO meetings (
+      date, meeting_type, presiding, conducting, announcements,
+      opening_hymn, opening_prayer, ward_business, stake_business,
+      sacrament_hymn, speakers, closing_hymn, closing_prayer
+    ) VALUES (
+      ${data.date}, ${data.meetingType}, ${data.presiding}, ${data.conducting},
+      ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(data.announcements ?? [])}::jsonb)),
+      ${JSON.stringify(data.openingHymn)}::jsonb, ${data.openingPrayer},
+      ${JSON.stringify(data.wardBusiness)}::jsonb, ${data.stakeBusiness},
+      ${JSON.stringify(data.sacramentHymn)}::jsonb,
+      ${JSON.stringify(data.speakers)}::jsonb,
+      ${JSON.stringify(data.closingHymn)}::jsonb, ${data.closingPrayer}
+    )
+    RETURNING id
+  `;
+    return { id: rows[0].id as number, ...data };
 }
 
 export async function updateMeeting(
     id: number,
-    updates: Partial<SacramentMeeting>
+    data: Omit<SacramentMeeting, 'id'>
 ): Promise<SacramentMeeting | null> {
-    throw new Error('updateMeeting: database implementation coming in Week 04');
+    const rows = await sql`
+    UPDATE meetings SET
+      date = ${data.date},
+      meeting_type = ${data.meetingType},
+      presiding = ${data.presiding},
+      conducting = ${data.conducting},
+      announcements = ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(data.announcements ?? [])}::jsonb)),
+      opening_hymn = ${JSON.stringify(data.openingHymn)}::jsonb,
+      opening_prayer = ${data.openingPrayer},
+      ward_business = ${JSON.stringify(data.wardBusiness)}::jsonb,
+      stake_business = ${data.stakeBusiness},
+      sacrament_hymn = ${JSON.stringify(data.sacramentHymn)}::jsonb,
+      speakers = ${JSON.stringify(data.speakers)}::jsonb,
+      closing_hymn = ${JSON.stringify(data.closingHymn)}::jsonb,
+      closing_prayer = ${data.closingPrayer}
+    WHERE id = ${id}
+    RETURNING id
+  `;
+    return rows.length > 0 ? { id, ...data } : null;
 }
 
 export async function deleteMeeting(id: number): Promise<boolean> {
-    throw new Error('deleteMeeting: database implementation coming in Week 04');
+    const rows = await sql`DELETE FROM meetings WHERE id = ${id} RETURNING id`;
+    return rows.length > 0;
 }
