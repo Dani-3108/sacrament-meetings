@@ -3,7 +3,11 @@ import { MeetingSearch } from '@/components/MeetingSearch';
 import MeetingCard from '@/components/MeetingCard';
 import { Pagination } from '@/components/Pagination';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
+export const metadata: Metadata = {
+    title: 'Meetings',
+};
 export default async function MeetingsPage(props: {
     searchParams?: Promise<{ query?: string; page?: string }>;
 }) {

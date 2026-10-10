@@ -7,9 +7,19 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
+/*export const metadata: Metadata = {
   title: 'Sacrament Meeting Planner',
   description: 'Plan and review sacrament meeting agendas',
+};*/
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Sacrament Meeting Planner',
+    template: '%s | Sacrament Meeting Planner',
+  },
+  description:
+    'Plan and review sacrament meeting agendas',
+  metadataBase: new URL('https://sacrament-meetings-taupe.vercel.app/'),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
