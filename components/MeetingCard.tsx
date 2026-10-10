@@ -1,16 +1,19 @@
 import Link from 'next/link';
 import { deleteMeeting } from '@/lib/actions';
 import type { SacramentMeeting } from '@/lib/types';
+import { auth } from '@/auth';
 
-export default function MeetingCard({ meeting }: { meeting: SacramentMeeting }) {
+export default async function MeetingCard({ meeting }: { meeting: SacramentMeeting }) {
+    const session = await auth();
     return (
-        <div className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50 transition">
+        <div className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50">
             <Link href={`/meetings/${meeting.id}`} className="block">
                 <p className="text-sm text-gray-500">{meeting.date}</p>
                 <h2 className="text-lg font-semibold capitalize">{meeting.meetingType} Meeting</h2>
                 <p className="text-sm text-gray-600">Presiding: {meeting.presiding}</p>
             </Link>
 
+            {session?.user && (
             <div className="mt-3 flex items-center gap-4">
                 <Link
                     href={`/meetings/${meeting.id}/edit`}
@@ -28,7 +31,8 @@ export default function MeetingCard({ meeting }: { meeting: SacramentMeeting }) 
                         Delete
                     </button>
                 </form>
-            </div>
+                </div>
+            )}
         </div>
     );
 }

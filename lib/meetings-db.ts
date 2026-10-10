@@ -1,3 +1,5 @@
+// lib/meetings-db.ts
+
 import { neon } from '@neondatabase/serverless';
 import type { SacramentMeeting } from './types';
 

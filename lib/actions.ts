@@ -9,6 +9,14 @@ import {
     updateMeeting as updateMeetingInDb,
     deleteMeeting as deleteMeetingInDb,
 } from './meetings-db';
+import { signIn, auth } from '@/auth';
+import { AuthError } from 'next-auth';
+
+async function requireOwnerSession() {
+    const session = await auth();
+    if (!session?.user) throw new Error('Not authenticated');
+    return session;
+}
 
 const MeetingFormSchema = z.object({
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid date.'),
@@ -78,6 +86,7 @@ function buildMeeting(
 }
 
 export async function createMeeting(prevState: State, formData: FormData): Promise<State> {
+    await requireOwnerSession();
     const parsed = MeetingFormSchema.safeParse(Object.fromEntries(formData));
     if (!parsed.success) {
         return {
@@ -98,6 +107,7 @@ export async function createMeeting(prevState: State, formData: FormData): Promi
 }
 
 export async function updateMeeting(id: string, prevState: State, formData: FormData): Promise<State> {
+    await requireOwnerSession();
     const meetingId = Number(id);
     if (Number.isNaN(meetingId)) notFound();
 
@@ -123,6 +133,7 @@ export async function updateMeeting(id: string, prevState: State, formData: Form
 }
 
 export async function deleteMeeting(id: string) {
+    await requireOwnerSession();
     try {
         await deleteMeetingInDb(Number(id));
     } catch (error) {
@@ -130,4 +141,23 @@ export async function deleteMeeting(id: string) {
         throw new Error('Failed to delete meeting. Please try again later.');
     }
     revalidatePath('/meetings');
+}
+
+export async function authenticate(
+    prevState: string | undefined,
+    formData: FormData,
+) {
+    try {
+        await signIn('credentials', formData);
+    } catch (error) {
+        if (error instanceof AuthError) {
+            switch (error.type) {
+                case 'CredentialsSignin':
+                    return 'Invalid email or password.';
+                default:
+                    return 'Something went wrong.';
+            }
+        }
+        throw error; // re-throw so Next.js handles redirects correctly
+    }
 }
